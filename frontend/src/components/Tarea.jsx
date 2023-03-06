@@ -4,7 +4,7 @@ import useProyectos from "../hooks/useProyectos";
 const Tarea = ({ tarea }) => {
   const { nombre, descripcion, fechaEntrega, prioridad, _id, estado } = tarea;
 
-  const { handleModalEditarTarea, setModalEliminarTarea } = useProyectos();
+  const { handleModalEditarTarea, handleModalEliminarTarea  } = useProyectos();
 
  
 
@@ -35,7 +35,7 @@ const Tarea = ({ tarea }) => {
 
         <button 
           className="bg-red-600 px-4 py-3 text-white uppercase font-bold text-sm rounded-lg"
-          onClick={()=> setModalEliminarTarea(true)}
+          onClick={()=>handleModalEliminarTarea(tarea)}
           >
           eliminar
         </button>

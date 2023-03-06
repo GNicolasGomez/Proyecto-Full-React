@@ -2,12 +2,16 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 import useProyectos from "../hooks/useProyectos";
 import MyModalFormularioTarea from "../components/ModalFormularioTarea";
-
+import ModalEliminarTarea from "../components/ModalEliminarTarea";
 import Tarea from "../components/Tarea";
+import Alerta from "../components/Alerta";
+import Colaborador from "../components/Colaborador";
+import ModalEliminarColaborador from "../components/ModalEliminarColaborador";
+
 
 const Proyecto = () => {
   const { id } = useParams();
-  const { obtenerProyecto, proyecto, cargando, handleModalTarea } =
+  const { obtenerProyecto, proyecto, cargando, handleModalTarea, alerta } =
     useProyectos();
 
   useEffect(() => {
@@ -17,6 +21,8 @@ const Proyecto = () => {
   const { nombre } = proyecto;
 
   if (cargando) return "Cargando ...";
+
+  const { msg } = alerta;
 
   return (
     <>
@@ -64,6 +70,13 @@ const Proyecto = () => {
       </button>
 
       <p className="font-bold text-xl mt-10"> Tareas del Proyecto </p>
+
+    <div className="flex justify-center">
+      <div className="w-full md:w-2/3 lg:w-3/4">
+        {msg && <Alerta alerta={alerta} />}
+      </div>
+    </div>
+
       <div className="bg-white shadow mt-10 rounded-lg">
         {proyecto.tareas?.length ? 
           proyecto.tareas?.map( tarea => (
@@ -78,7 +91,32 @@ const Proyecto = () => {
           </p>}
       </div>
 
+      <div className="flex itmes-center justify-between mt-10">
+      <p className="font-bold text-xl"> Colaboradores </p>
+      <Link
+        to={`/proyectos/nuevo-colaborador/${proyecto._id}`}
+        className='text-gray-400 hover:text-gray-500 uppercase font-bold'
+      >Añadir</Link>
+      </div>
+
+      <div className="bg-white shadow mt-10 rounded-lg">
+        {proyecto.colaboradores?.length ? 
+          proyecto.colaboradores?.map( colaborador => (
+            <Colaborador
+              key={colaborador._id}
+              colaborador={colaborador}
+            />
+          ))
+         : 
+          <p className="text-center my-5 p-10 font-bold text-md">
+            No hay colaboradores en este proyecto
+          </p>}
+      </div>
+
+      
       <MyModalFormularioTarea />
+      <ModalEliminarTarea />
+      <ModalEliminarColaborador />
     </>
   );
 };

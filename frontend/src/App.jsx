@@ -12,6 +12,7 @@ import Proyectos from "./page/Proyectos";
 import NuevoProyecto from "./page/NuevoProyecto";
 import Proyecto from "./page/Proyecto";
 import EditarProyecto from "./page/EditarProyecto";
+import NuevoColaborador from "./page/NuevoColaborador";
 
 import { AuthProvider } from "./context/AuthProvider";
 import {
@@ -37,6 +38,7 @@ function App() {
             <Route path="/proyectos" element={<RutaProtegida />}>
               <Route index element={<Proyectos />} />
               <Route path="crear-proyecto" element={<NuevoProyecto />} />
+              <Route path="nuevo-colaborador/:id" element={<NuevoColaborador />} />
               <Route path=":id" element={<Proyecto />} />
               <Route path="editar/:id" element={<EditarProyecto />} />
             </Route>
