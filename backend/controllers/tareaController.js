@@ -99,14 +99,56 @@ const eliminatTarea = async (req, res) => {
   }
 
   try {
-    await tarea.deleteOne();
+    const proyecto = await Proyecto.findById(tarea.proyecto);
+    proyecto.tareas.pull(tarea._id);
+
+    //Como tenemos 2 promesas lo encapsulamos en 2
+    await Promise.allSettled([await proyecto.save(), await tarea.deleteOne()]);
+
     res.json({ msg: "La tarea se eliminó correctamente" });
   } catch (error) {
     console.log(error);
   }
 };
 
-const cambiarEstado = async (req, res) => {};
+const cambiarEstado = async (req, res) => {
+  const { id } = req.params;
+  const isValid = mongoose.Types.ObjectId.isValid(id);
+  if (!isValid) {
+    const error = new Error("TAREA INEXISTENTE");
+    return res.status(404).json({ msg: error.message });
+  }
+
+  const tarea = await Tarea.findById(id).populate("proyecto")
+
+
+
+  if (!tarea) {
+    const error = new Error("Tarea no encontrada");
+    return res.status(404).json({ msg: error.message });
+  }
+  // El que puede marcar como completa/incompleta una tarea es solamente el dueño o colaborador del proyecto
+
+  if (
+    tarea.proyecto.creador.toString() !== req.usuario._id.toString() &&
+    !tarea.proyecto.colaboradores.some(
+      (colaborador) => colaborador._id.toString() === req.usuario._id.toString()
+    )
+  ) {
+    const error = new Error('Accion no Válida, no estas en el proyecto');
+    return res.status(404).json({msg : error.message});
+
+  }
+
+  tarea.estado = !tarea.estado;
+  tarea.completado = req.usuario._id;
+  await tarea.save();
+
+  const tareaAlmacenada = await Tarea.findById(id).populate('proyecto').populate('completado');
+
+  res.json(tareaAlmacenada);
+
+};
 
 export {
   agregarTarea,

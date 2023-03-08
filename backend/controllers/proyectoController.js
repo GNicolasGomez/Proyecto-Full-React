@@ -3,7 +3,12 @@ import Proyecto from "../models/Proyecto.js";
 import Usuario from "../models/Usuario.js";
 
 const obtenerProyectos = async (req, res) => {
-  const proyectos = await Proyecto.find().where("creador").equals(req.usuario).select('-tareas');
+  const proyectos = await Proyecto.find({
+    '$or' : [
+      {'colaboradores': { $in : req.usuario}},
+      {'creador': { $in : req.usuario}}
+    ]
+  }).select('-tareas');
   res.json(proyectos);
 };
 
@@ -28,13 +33,14 @@ const obtenerProyecto = async (req, res) => {
     const error = new Error("El proyecto no existe");
     return res.status(404).json({ msg: error.message });
   }
-  const proyecto = await Proyecto.findById(id).populate('tareas').populate('colaboradores', 'nombre email');
+  const proyecto = await Proyecto.findById(id).populate({path : 'tareas', populate: {path: 'completado', select : "nombre "}}).populate('colaboradores', 'nombre email');
 
   if (!proyecto) {
     const error = new Error("El proyecto no existe");
     return res.status(404).json({ msg: error.message });
   }
-  if (proyecto.creador.toString() !== req.usuario.id.toString()) {
+  // Verificamos que el que pueda ver el proyecto sea el creador o un colaborador
+  if (proyecto.creador.toString() !== req.usuario.id.toString() && !proyecto.colaboradores.some(colaborador => colaborador._id.toString() === req.usuario._id.toString() )) {
     const error = new Error("Acción no válida, el proyecto no te pertenece");
     return res.status(401).json({ msg: error.message });
   }

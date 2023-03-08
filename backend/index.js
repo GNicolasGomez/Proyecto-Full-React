@@ -12,6 +12,7 @@ dotenv.config()
 app.use(express.json());
 
 
+
 //Confingurar CORS
 const whitelist = [process.env.FRONTEND_URL,'http://localhost:4000'];
 
@@ -38,7 +39,38 @@ app.use('/api/tareas',tareasRoutes);
 
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT , ()=> {
+const server = app.listen(PORT , ()=> {
     console.log(chalk.inverse.yellow(`Servidor Corriendo en el puerto ${PORT}`));
 })
 
+
+// Socket.io
+
+import { Server } from 'socket.io';
+
+const io = new Server(server, {
+    pingTimeout : 60000,
+    cors :{
+        origin :process.env.FRONTEND_URL,
+    }
+});
+
+io.on('connection',(socket) => {
+    console.log('Conectado a Socket.io');
+
+    // Definir los evenetos de Socket.io
+
+    socket.on('abrir proyecto', (proyectoID)=> {
+        console.log(proyectoID, 'Soy el Id del proyecto')
+        socket.join(proyectoID);
+    })
+
+        socket.on('nueva tarea', tarea => {
+            console.log(tarea);
+            const proyecto = tarea.proyecto;
+            console.log(proyecto, 'Soy el Id del proyecto extraido de la tarea')
+            socket.to(proyecto).emit('tarea agregada', tarea )
+        })
+
+
+})
