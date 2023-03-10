@@ -32,7 +32,6 @@ const Login = () => {
         email,
         password,
       });
-      console.log(data)
       setAlerta({});
       localStorage.setItem("token", data.token);
       setAuth(data);

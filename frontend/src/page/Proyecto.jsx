@@ -7,14 +7,23 @@ import ModalEliminarTarea from "../components/ModalEliminarTarea";
 import Tarea from "../components/Tarea";
 import Colaborador from "../components/Colaborador";
 import ModalEliminarColaborador from "../components/ModalEliminarColaborador";
-import io from 'socket.io-client';
+import io from "socket.io-client";
 
 let socket;
 
 const Proyecto = () => {
   const { id } = useParams();
-  const { obtenerProyecto, proyecto, cargando, handleModalTarea, alerta } =
-    useProyectos();
+  const {
+    obtenerProyecto,
+    proyecto,
+    cargando,
+    handleModalTarea,
+    alerta,
+    submitTareasProyectos,
+    eliminarTareaProyecto,
+    actualizarTareaProyecto,
+    cambioEstadoTarea
+  } = useProyectos();
 
   const admin = useAdmin();
 
@@ -22,28 +31,45 @@ const Proyecto = () => {
     obtenerProyecto(id);
   }, []);
 
-
-  useEffect(()=> {
-
+  useEffect(() => {
     socket = io(import.meta.env.VITE_BACKEND_URL);
-    socket.emit('abrir proyecto', id)
-  },[]);
+    socket.emit("abrir proyecto", id);
+  }, []);
 
-  useEffect(()=>{
-   socket.on('tarea agregada', tareanueva => {
-    console.log(tareanueva);
-   })
-    
-  })
+  useEffect(() => {
+    socket.on("tarea agregada", (tareanueva) => {
+      if (tareanueva.proyecto === proyecto._id) {
+        submitTareasProyectos(tareanueva);
+      }
+    });
+
+    socket.on('tarea eliminada' , tareaEliminada => {
+      if(tareaEliminada.proyecto === proyecto._id) {
+        eliminarTareaProyecto(tareaEliminada)
+      }
+    });
+
+    socket.on('tarea actualizada' ,  tarea => {
+      if(tarea.proyecto._id === proyecto.id){
+        actualizarTareaProyecto(tarea);
+      }
+    });
+
+    socket.on('estado cambiado tarea' , tarea => {
+      if(tarea.proyecto._id === proyecto._id) {
+        cambioEstadoTarea(tarea);
+      }
+    })
+
+  });
 
   const { nombre } = proyecto;
-
 
   if (cargando) return "Cargando ...";
 
   const { msg } = alerta;
 
-  return  (
+  return (
     <>
       <div className="flex justify-between">
         <h1 className="font-black text-4xl">{nombre}</h1>
